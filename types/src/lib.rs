@@ -15,7 +15,7 @@ For this to work it should be true that types $P$ and $V$ are such that if $P_t$
 // Path: src/lib.rs
 // ContractPoint
 // Contract state  
-struct ContractPoint {
+pub struct ContractPoint {
     x: i32,
     y: i32,
     total: u32,
@@ -23,7 +23,7 @@ struct ContractPoint {
 
 // PointVote
 // A single vote
-struct PointVote {
+pub struct PointVote {
     x: i32,
     y: i32,
     weight: u32,
