@@ -7,6 +7,7 @@ fn main() {
     /* Data Layer starts
         * Code is stored on the data layer or, really, anywhere the prover can access
         * The only thing that needs to be stored on the main chain is the */
+
     let method_code = std::fs::read(VOTE_PATH) 
         .expect("Method code should be present at the specified path; did you use the correct *_PATH constant?");
     // Data Layer ends
@@ -26,10 +27,7 @@ fn main() {
         add_vote(&mut prover, vote);
     }
 
-    close_vote(&mut prover); // transactions received while closed are relayed to a peer prover 
-
-    let receipt = prover.run()
-        .expect("Code 1) had an error or 2) overflowed the cycle limit.");
+    let receipt = close_vote_and_prove(&mut prover); // transactions received while closed are relayed to a peer prover 
 
     prover = Prover::new(&method_code, VOTE_ID).expect(
         "Prover should be constructed from valid method source code and corresponding method ID",
@@ -40,10 +38,8 @@ fn main() {
         add_vote(&mut prover, vote);
     }
 
-    close_vote(&mut prover);
+    let receipt2 = close_vote_and_prove(&mut prover);
 
-    let receipt2 = prover.run()
-        .expect("Code 1) had an error or 2) overflowed the cycle limit.");
     // Execution Layer ends
 
 
@@ -80,8 +76,9 @@ fn add_vote(prover: &mut Prover, vote: PointVote) {
     prover.add_input_u32_slice(&to_vec(&vote.get_weight()).expect("weight error"));
 }
 
-fn close_vote(prover: &mut Prover) {
+fn close_vote_and_prove(prover: &mut Prover) -> Receipt {
     prover.add_input_u32_slice(&to_vec(&0).expect("Should be able to serialize"));
+    prover.run().expect("Code 1) had an error or 2) overflowed the cycle limit.")
 }
 
 fn settle_vote(contract: &ContractPoint, receipt: &Receipt) -> ContractPoint {
