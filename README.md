@@ -18,6 +18,7 @@ To build all methods and execute the method within the zkVM, run the following c
 
 ```
 cargo run
+```
 
 ## Expected output
 ```
