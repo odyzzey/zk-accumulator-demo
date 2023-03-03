@@ -18,3 +18,13 @@ To build all methods and execute the method within the zkVM, run the following c
 
 ```
 cargo run
+
+## Expected output
+```
+Transaction 1:
+         Receipt: [45, 45, 10]
+         ContractPoint { x: 45, y: 45, total: 10 }
+Transaction 2:
+         Receipt: [90, 90, 10]
+         ContractPoint { x: 135, y: 135, total: 20 }
+```
