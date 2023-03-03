@@ -1,26 +1,91 @@
-// TODO: Update the name of the method loaded by the prover. E.g., if the method is `multiply`, replace `METHOD_NAME_ID` with `MULTIPLY_ID` and replace `METHOD_NAME_PATH` with `MULTIPLY_PATH`
-use methods::{METHOD_NAME_ID, METHOD_NAME_PATH};
-use risc0_zkvm::Prover;
-// use risc0_zkvm::serde::{from_slice, to_vec};
+use methods::{VOTE_ID, VOTE_PATH};
+use risc0_zkvm::{Prover, Receipt};
+use risc0_zkvm::serde::to_vec;
+use types::{PointVote, ContractPoint};
 
 fn main() {
-    // Make the prover.
-    let method_code = std::fs::read(METHOD_NAME_PATH)
+    /* Data Layer starts
+        * Code is stored on the data layer or, really, anywhere the prover can access
+        * The only thing that needs to be stored on the main chain is the */
+    let method_code = std::fs::read(VOTE_PATH) 
         .expect("Method code should be present at the specified path; did you use the correct *_PATH constant?");
-    let mut prover = Prover::new(&method_code, METHOD_NAME_ID).expect(
+    // Data Layer ends
+
+
+    /* Execution Layer starts
+        * The execution layer is a network of provers peered with one another.
+        * In this demo we sequentially simulate 2 provers. 
+        * A production network would have provers run in parallel. */
+
+    let mut prover = Prover::new(&method_code, VOTE_ID).expect(
         "Prover should be constructed from valid method source code and corresponding method ID",
-    );
+    ); // prover makes itself available to receive transactions
+   
+    for i in 0..10 {
+        let vote = PointVote::new(i, i, 1);
+        add_vote(&mut prover, vote);
+    }
 
-    // TODO: Implement communication with the guest here
+    close_vote(&mut prover); // transactions received while closed are relayed to a peer prover 
 
-    // Run prover & generate receipt
     let receipt = prover.run()
-        .expect("Code should be provable unless it 1) had an error or 2) overflowed the cycle limit. See `embed_methods_with_options` for information on adjusting maximum cycle count.");
+        .expect("Code 1) had an error or 2) overflowed the cycle limit.");
 
-    // Optional: Verify receipt to confirm that recipients will also be able to verify your receipt
-    receipt.verify(METHOD_NAME_ID).expect(
+    prover = Prover::new(&method_code, VOTE_ID).expect(
+        "Prover should be constructed from valid method source code and corresponding method ID",
+    );  // second prover also bundles votes at the same time
+    
+    for i in 0..10 {
+        let vote = PointVote::new(i * 2, i * 2, 1);
+        add_vote(&mut prover, vote);
+    }
+
+    close_vote(&mut prover);
+
+    let receipt2 = prover.run()
+        .expect("Code 1) had an error or 2) overflowed the cycle limit."));
+    // Execution Layer ends
+
+
+    /* Settlement Layer starts
+        * Provers finally relay their receipts to the main network and intiate transactions.
+        * State transition is handled at the smart contract level
+        * Verification would happen in a zk verification module on a Cosmos chain. */
+
+    let mut contract = ContractPoint::new();
+    // verify votes/receipt from the first prover
+    receipt.verify(VOTE_ID).expect(
+        "Code you have proven should successfully verify; did you specify the correct method ID?",
+    ); // note again that only the method_id is needed on the verifier side--not the code itself
+
+    // settle and transition contract state
+    settle_vote(&mut contract, &receipt);
+    println!("Transaction 1: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt.journal);
+
+    // verify votes/receipt from the second prover
+    receipt2.verify(VOTE_ID).expect(
         "Code you have proven should successfully verify; did you specify the correct method ID?",
     );
 
-    // TODO: Implement code for transmitting or serializing the receipt for other parties to verify here
+    settle_vote(&mut contract, &receipt2);
+    println!("Transaction 2: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt2.journal);
+    // Settlement Layer ends
+}
+
+fn add_vote(prover: &mut Prover, vote: PointVote) {
+    prover.add_input_u32_slice(&to_vec(&1).expect("Should be able to serialize"));
+
+    prover.add_input_u32_slice(&to_vec(&vote.get_x()).expect("x error"));
+    prover.add_input_u32_slice(&to_vec(&vote.get_y()).expect("y error"));
+    prover.add_input_u32_slice(&to_vec(&vote.get_weight()).expect("weight error"));
+}
+
+fn close_vote(prover: &mut Prover) {
+    prover.add_input_u32_slice(&to_vec(&0).expect("Should be able to serialize"));
+}
+
+fn settle_vote(mut contract: ContractPoint, receipt: &Receipt) {
+    let journal = receipt.journal.to_vec();
+    let transaction_vote = PointVote::new(journal[0].try_into().unwrap(), journal[1].try_into().unwrap(), journal[2]);
+    contract = contract.add(transaction_vote);
 }
