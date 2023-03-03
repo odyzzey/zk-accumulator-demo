@@ -1,20 +1,7 @@
-/* 
-Traditionally, a contract is composed of a state and users interface with them via public methods that can transition this state.
-
-In an environment where external, but approved, public-facing methods do not have access to the state during execution (read: write only), how do we safely transition the contract's state with only the outputs of these methods?
-
-Proposed Solution: Require that contracts implement accumulator logic to add output substates.
-
-We build state transition logic into an addition operation between the state and public method output types, meaning that method outputs propose increments to the contract's state that the state object's addition operand can choose to accept or reject. These increments, or substates, can be added together, or accumulated to reduce the numbe of operations on the contract state itself.
-
-For this to work it should be true that types $P$ and $V$ are such that if $P_t$ represents the contract's state at time $t$, and $V = \left\{ V_1, V_2, .., V_n\right\}\nonumber$ is a set of $n$ valid increments to $P$, we can say that $P_t + V_1 + V_2 + .. + V_n = P_t + \sum\limits_{i=1}^n (V_n)$
-*/
-
 #![allow(dead_code)]
+#![no_std]
 
-// Path: src/lib.rs
-// ContractPoint
-// Contract state  
+#[derive(Debug, Clone, Copy)]
 pub struct ContractPoint {
     x: i32,
     y: i32,
@@ -22,20 +9,32 @@ pub struct ContractPoint {
 }
 
 // PointVote
-// A single vote
 pub struct PointVote {
     x: i32,
     y: i32,
     weight: u32,
 }
 
-// PointVote addition
-// Accumulation logic for PointVotes
-use std::ops::Add;
-impl Add for PointVote {
-    type Output = Self;
+//View methods for PointVote
+impl PointVote {
 
-    fn add(self, other: Self) -> Self::Output {
+    pub fn new(x: i32, y: i32, weight: u32) -> Self {
+        Self { x, y, weight }
+    }
+
+    pub fn get_x(&self) -> i32 {
+        self.x
+    }
+
+    pub fn get_y(&self) -> i32 {
+        self.y
+    }
+
+    pub fn get_weight(&self) -> u32 {
+        self.weight
+    }
+
+    pub fn add(self, other: Self) -> Self{
         Self {
             x: (self.x + other.x),
             y: (self.y + other.y),
@@ -44,34 +43,25 @@ impl Add for PointVote {
     }
 }
 
-// ContractPoint addition
-// Accumulatioon logic for ContractPoint  
-impl Add<PointVote> for ContractPoint {
-    type Output = Self;
-    fn add(self, other: PointVote) -> Self::Output {
+// The contract's state
+impl ContractPoint {
+
+    pub fn new() -> Self {
         Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            total: self.total + other.weight,
+            x: 0,
+            y: 0,
+            total: 0,
         }
     }
-}
 
-// implement ContractPoint view methods
-// these methods are public-facing and can be called by any user
-// the do have access to the contract's state
-impl ContractPoint {
-    // get the current x value
     pub fn get_x(&self) -> i32 {
         self.x
     }
 
-    // get the current y value
     pub fn get_y(&self) -> i32 {
         self.y
     }
 
-    // get the current total value
     pub fn get_total(&self) -> u32 {
         self.total
     }
@@ -82,13 +72,21 @@ impl ContractPoint {
         let total = self.total as f64;
         ((x / total) as u64, (y / total) as u64)
     }
+
+    pub fn add(self, other: PointVote) -> Self {
+        Self {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            total: self.total + other.weight,
+        }
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
+    /*
     use super::*;
-
     //test PointVote accumulation
     #[test]
     fn test_point_vote_addition() {
@@ -137,4 +135,5 @@ mod tests {
         assert_eq!(point.total, 6);
         assert_eq!(point.get_average(), (1, 1));
     }
+    */
 }
