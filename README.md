@@ -21,6 +21,7 @@ cargo run
 ```
 
 ## Expected output
+
 ```
 Transaction 1:
          Receipt: [45, 45, 10]
