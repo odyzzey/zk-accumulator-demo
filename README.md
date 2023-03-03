@@ -17,8 +17,8 @@ First, make sure [rustup](https://rustup.rs) is installed. This project uses a [
 To build all methods and execute the method within the zkVM, run the following commands:
 
 ```
-cd host
-cargo run
+$ cd host
+$ cargo run
 ```
 
 ## Expected output
