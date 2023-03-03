@@ -60,7 +60,7 @@ fn main() {
 
     // settle and transition contract state
     contract = settle_vote(&contract, &receipt);
-    println!("Transaction 1: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt.journal);
+    println!("Transaction 2: \n\t Receipt: {:?} \n\t {:?}", &receipt.journal, &contract);
 
     // verify votes/receipt from the second prover
     receipt2.verify(VOTE_ID).expect(
@@ -68,7 +68,7 @@ fn main() {
     );
 
     contract = settle_vote(&contract, &receipt2);
-    println!("Transaction 2: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt2.journal);
+    println!("Transaction 2: \n\t Receipt: {:?} \n\t {:?}", &receipt2.journal, &contract);
     // Settlement Layer ends
 }
 
