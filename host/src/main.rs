@@ -56,7 +56,7 @@ fn main() {
 
     // settle and transition contract state
     contract = settle_vote(&contract, &receipt);
-    println!("Transaction 2: \n\t Receipt: {:?} \n\t {:?}", &receipt.journal, &contract);
+    println!("Transaction 1: \n\t Receipt: {:?} \n\t {:?}", &receipt.journal, &contract);
 
     // verify votes/receipt from the second prover
     receipt2.verify(VOTE_ID).expect(
