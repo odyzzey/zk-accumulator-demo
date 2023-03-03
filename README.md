@@ -6,7 +6,7 @@ Proposed Solution: Require that contracts implement accumulator logic to add out
 
 We can build state transition logic into an addition operation between the state and public method output types, meaning that host method outputs propose increments to the contract's state that the state object's addition operand can choose to accept or reject. These increments, or substates, can be added together, or accumulated to reduce the number of operations on the contract state itself.
 
-For this to work it should be true that types $P$ and $V$ are such that if $P_t$ represents the contract's state at time $t$, and $V = \left\lbrace V_1, V_2, .., V_n\right\}\nonumber$ is a set of $n$ valid increments to $P$, we can say that $P_t + V_1 + V_2 + .. + V_n = P_t + \sum\limits_{i=1}^n (V_n)$
+For this to work it should be true that types $P$ and $V$ are such that if $P_t$ represents the contract's state at time $t$, and $V =\{ V_1, V_2, .., V_n\}$ is a set of $n$ valid increments to $P$, we can say that $P_t + V_1 + V_2 + .. + V_n = P_t + \sum\limits_{i=1}^n (V_n)$
 
 This repo is a simulation of what a system like this may look like on a live chain.
 
