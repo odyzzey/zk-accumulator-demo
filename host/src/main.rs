@@ -43,7 +43,7 @@ fn main() {
     close_vote(&mut prover);
 
     let receipt2 = prover.run()
-        .expect("Code 1) had an error or 2) overflowed the cycle limit."));
+        .expect("Code 1) had an error or 2) overflowed the cycle limit.");
     // Execution Layer ends
 
 
@@ -59,7 +59,7 @@ fn main() {
     ); // note again that only the method_id is needed on the verifier side--not the code itself
 
     // settle and transition contract state
-    settle_vote(&mut contract, &receipt);
+    contract = settle_vote(&contract, &receipt);
     println!("Transaction 1: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt.journal);
 
     // verify votes/receipt from the second prover
@@ -67,7 +67,7 @@ fn main() {
         "Code you have proven should successfully verify; did you specify the correct method ID?",
     );
 
-    settle_vote(&mut contract, &receipt2);
+    contract = settle_vote(&contract, &receipt2);
     println!("Transaction 2: \n\t Contract: {:?} \n\t Receipt: {:?}", &contract, receipt2.journal);
     // Settlement Layer ends
 }
@@ -84,8 +84,8 @@ fn close_vote(prover: &mut Prover) {
     prover.add_input_u32_slice(&to_vec(&0).expect("Should be able to serialize"));
 }
 
-fn settle_vote(mut contract: ContractPoint, receipt: &Receipt) {
+fn settle_vote(contract: &ContractPoint, receipt: &Receipt) -> ContractPoint {
     let journal = receipt.journal.to_vec();
     let transaction_vote = PointVote::new(journal[0].try_into().unwrap(), journal[1].try_into().unwrap(), journal[2]);
-    contract = contract.add(transaction_vote);
+    contract.add(transaction_vote)
 }
