@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 #![no_std]
 
 #[derive(Debug, Clone, Copy)]
